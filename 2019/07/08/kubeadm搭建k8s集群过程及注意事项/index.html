@@ -8,18 +8,18 @@
   <link rel="dns-prefetch" href="http://you1.xin">
   <title>kubeadm搭建k8s集群过程及注意事项 | GreysMemo</title>
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
-  <meta name="description" content="GreysMemo-灰人备忘录">
+  <meta name="description" content="修改hostnamemaster和各个node都要先改好hostname,否则都是默认的localhost.localdomain,node加入master后因为hostname同名导致master出问题  1（hostnamectl set-hostname xxx）  关闭防火墙12systemctl stop firewalldsystemctl disable firewalld  关闭s">
 <meta name="keywords" content="greys memo 灰人 备忘录">
 <meta property="og:type" content="article">
 <meta property="og:title" content="kubeadm搭建k8s集群过程及注意事项">
 <meta property="og:url" content="http://you1.xin/2019/07/08/kubeadm搭建k8s集群过程及注意事项/index.html">
 <meta property="og:site_name" content="GreysMemo">
-<meta property="og:description" content="GreysMemo-灰人备忘录">
+<meta property="og:description" content="修改hostnamemaster和各个node都要先改好hostname,否则都是默认的localhost.localdomain,node加入master后因为hostname同名导致master出问题  1（hostnamectl set-hostname xxx）  关闭防火墙12systemctl stop firewalldsystemctl disable firewalld  关闭s">
 <meta property="og:locale" content="default">
-<meta property="og:updated_time" content="2019-07-08T06:11:13.849Z">
+<meta property="og:updated_time" content="2019-07-08T06:22:49.923Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="kubeadm搭建k8s集群过程及注意事项">
-<meta name="twitter:description" content="GreysMemo-灰人备忘录">
+<meta name="twitter:description" content="修改hostnamemaster和各个node都要先改好hostname,否则都是默认的localhost.localdomain,node加入master后因为hostname同名导致master出问题  1（hostnamectl set-hostname xxx）  关闭防火墙12systemctl stop firewalldsystemctl disable firewalld  关闭s">
   
     <link rel="alternative" href="/atom.xml" title="GreysMemo" type="application/atom+xml">
   
@@ -179,7 +179,68 @@
     
     <div class="article-entry" itemprop="articleBody">
       
-        
+        <h2 id="修改hostname"><a href="#修改hostname" class="headerlink" title="修改hostname"></a>修改hostname</h2><p>master和各个node都要先改好hostname,否则都是默认的localhost.localdomain,node加入master后因为hostname同名导致master出问题 </p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">（hostnamectl set-hostname xxx）</span><br></pre></td></tr></table></figure>
+
+<h2 id="关闭防火墙"><a href="#关闭防火墙" class="headerlink" title="关闭防火墙"></a>关闭防火墙</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">systemctl stop firewalld</span><br><span class="line">systemctl disable firewalld</span><br></pre></td></tr></table></figure>
+
+<h2 id="关闭swap"><a href="#关闭swap" class="headerlink" title="关闭swap"></a>关闭swap</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">swapoff -a </span><br><span class="line">sed -i &apos;s/.*swap.*/#&amp;/&apos; /etc/fstab</span><br></pre></td></tr></table></figure>
+
+<h2 id="关闭selinux"><a href="#关闭selinux" class="headerlink" title="关闭selinux"></a>关闭selinux</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">setenforce  0 </span><br><span class="line">sed -i &quot;s/^SELINUX=enforcing/SELINUX=disabled/g&quot; /etc/sysconfig/selinux </span><br><span class="line">sed -i &quot;s/^SELINUX=enforcing/SELINUX=disabled/g&quot; /etc/selinux/config </span><br><span class="line">sed -i &quot;s/^SELINUX=permissive/SELINUX=disabled/g&quot; /etc/sysconfig/selinux </span><br><span class="line">sed -i &quot;s/^SELINUX=permissive/SELINUX=disabled/g&quot; /etc/selinux/config</span><br></pre></td></tr></table></figure>
+
+<h2 id="设置网络"><a href="#设置网络" class="headerlink" title="设置网络"></a>设置网络</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">modprobe br_netfilter</span><br><span class="line">cat &lt;&lt;EOF &gt;  /etc/sysctl.d/k8s.conf</span><br><span class="line">net.bridge.bridge-nf-call-ip6tables = 1</span><br><span class="line">net.bridge.bridge-nf-call-iptables = 1</span><br><span class="line">EOF</span><br><span class="line">sysctl -p /etc/sysctl.d/k8s.conf</span><br><span class="line">ls /proc/sys/net/bridge</span><br></pre></td></tr></table></figure>
+
+<h2 id="设置repo"><a href="#设置repo" class="headerlink" title="设置repo"></a>设置repo</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">cat &lt;&lt;EOF &gt; /etc/yum.repos.d/kubernetes.repo</span><br><span class="line">[kubernetes]</span><br><span class="line">name=Kubernetes</span><br><span class="line">baseurl=https://mirrors.aliyun.com/kubernetes/yum/repos/kubernetes-el7-x86_64/</span><br><span class="line">enabled=1</span><br><span class="line">gpgcheck=1</span><br><span class="line">repo_gpgcheck=1</span><br><span class="line">gpgkey=https://mirrors.aliyun.com/kubernetes/yum/doc/yum-key.gpg https://mirrors.aliyun.com/kubernetes/yum/doc/rpm-package-key.gpg</span><br><span class="line">EOF</span><br></pre></td></tr></table></figure>
+
+<h2 id="安装必要工具"><a href="#安装必要工具" class="headerlink" title="安装必要工具"></a>安装必要工具</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">yum install -y epel-release</span><br><span class="line">yum install -y yum-utils device-mapper-persistent-data lvm2 net-tools conntrack-tools wget vim  ntpdate libseccomp libtool-ltdl</span><br></pre></td></tr></table></figure>
+
+<h2 id="其他一些设置"><a href="#其他一些设置" class="headerlink" title="其他一些设置"></a>其他一些设置</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">systemctl enable ntpdate.service</span><br><span class="line">echo &apos;*/30 * * * * /usr/sbin/ntpdate time7.aliyun.com &gt;/dev/null 2&gt;&amp;1&apos; &gt; /tmp/crontab2.tmp</span><br><span class="line">crontab /tmp/crontab2.tmp</span><br><span class="line">systemctl start ntpdate.service</span><br><span class="line"> </span><br><span class="line">echo &quot;* soft nofile 65536&quot; &gt;&gt; /etc/security/limits.conf</span><br><span class="line">echo &quot;* hard nofile 65536&quot; &gt;&gt; /etc/security/limits.conf</span><br><span class="line">echo &quot;* soft nproc 65536&quot;  &gt;&gt; /etc/security/limits.conf</span><br><span class="line">echo &quot;* hard nproc 65536&quot;  &gt;&gt; /etc/security/limits.conf</span><br><span class="line">echo &quot;* soft  memlock  unlimited&quot;  &gt;&gt; /etc/security/limits.conf</span><br><span class="line">echo &quot;* hard memlock  unlimited&quot;  &gt;&gt; /etc/security/limits.conf</span><br></pre></td></tr></table></figure>
+
+<h2 id="安装docker"><a href="#安装docker" class="headerlink" title="安装docker"></a>安装docker</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">yum-config-manager --add-repo http://mirrors.aliyun.com/docker-ce/linux/centos/docker-ce.repo</span><br><span class="line">sudo yum remove docker \</span><br><span class="line">                  docker-client \</span><br><span class="line">                  docker-client-latest \</span><br><span class="line">                  docker-common \</span><br><span class="line">                  docker-latest \</span><br><span class="line">                  docker-latest-logrotate \</span><br><span class="line">                  docker-logrotate \</span><br><span class="line">                  docker-selinux \</span><br><span class="line">                  docker-engine-selinux \</span><br><span class="line">                  docker-engine</span><br><span class="line">yum install -y docker-ce</span><br><span class="line">systemctl enable docker</span><br><span class="line">systemctl start docker</span><br></pre></td></tr></table></figure>
+
+<h2 id="安装kubeadm"><a href="#安装kubeadm" class="headerlink" title="安装kubeadm"></a>安装kubeadm</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">yum install -y kubelet kubeadm kubectl</span><br><span class="line">systemctl enable kubelet</span><br></pre></td></tr></table></figure>
+
+<h2 id="设置镜像加速"><a href="#设置镜像加速" class="headerlink" title="设置镜像加速"></a>设置镜像加速</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">sudo mkdir -p /etc/docker</span><br><span class="line">sudo tee /etc/docker/daemon.json &lt;&lt;-&apos;EOF&apos;</span><br><span class="line">&#123;</span><br><span class="line">  &quot;registry-mirrors&quot;: [&quot;https://li2mrog8.mirror.aliyuncs.com&quot;]</span><br><span class="line">&#125;</span><br><span class="line">EOF</span><br><span class="line">sudo systemctl daemon-reload</span><br><span class="line">sudo systemctl restart docker</span><br></pre></td></tr></table></figure>
+
+<h2 id="准备镜像"><a href="#准备镜像" class="headerlink" title="准备镜像"></a>准备镜像</h2><ul>
+<li>不翻墙的情况下无法从k8s.gcr.io拉取镜像，因此需要提前从阿里云下载好镜像并tag改为k8s.gcr.io的,<strong>==非master的node也需要下载pause和kube-proxy==</strong><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">for i in `kubeadm config images list`; do</span><br><span class="line">  imageName=$&#123;i#k8s.gcr.io/&#125;</span><br><span class="line">  docker pull registry.aliyuncs.com/google_containers/$imageName</span><br><span class="line">  docker tag registry.aliyuncs.com/google_containers/$imageName k8s.gcr.io/$imageName</span><br><span class="line">  docker rmi registry.aliyuncs.com/google_containers/$imageName</span><br><span class="line">done;</span><br></pre></td></tr></table></figure>
+
+</li>
+</ul>
+<h2 id="kubeadm-init"><a href="#kubeadm-init" class="headerlink" title="kubeadm init"></a>kubeadm init</h2><ul>
+<li>kubeadm init 时要增加参数–pod-network-cidr 10.244.0.0/16，因为flannel的默认配置是10.244.0.0/16</li>
+<li>kubeadm init 结束后不要忘了执行以下命令，否则无法正常使用kubectl<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">mkdir -p $HOME/.kube</span><br><span class="line">sudo cp -i /etc/kubernetes/admin.conf $HOME/.kube/config</span><br><span class="line">sudo chown $(id -u):$(id -g) $HOME/.kube/config</span><br></pre></td></tr></table></figure>
+
+</li>
+</ul>
+<h2 id="安装flannel"><a href="#安装flannel" class="headerlink" title="安装flannel"></a>安装flannel</h2><ul>
+<li><p><a href="https://raw.githubusercontent.com/coreos/flannel/master/Documentation/kube-flannel.yml" target="_blank" rel="noopener">https://raw.githubusercontent.com/coreos/flannel/master/Documentation/kube-flannel.yml</a></p>
+<h2 id="安装dashboard"><a href="#安装dashboard" class="headerlink" title="安装dashboard"></a>安装dashboard</h2></li>
+<li><p>kubernetes-dashboard.yaml要修改镜像地址，否则无法pull</p>
+</li>
+<li><p>dashboard 如果以NodePort方式暴露接口来访问则需创建user，具体步骤为:</p>
+<ul>
+<li><p>创建一个叫admin-user的服务账号</p>
+ <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"># admin-user.yaml</span><br><span class="line">  apiVersion: v1</span><br><span class="line">  kind: ServiceAccount</span><br><span class="line">  metadata:</span><br><span class="line">  name: admin-user</span><br><span class="line">  namespace: kube-system</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>绑定角色,kubeadm默认已经创建了admin的角色,直接绑定就可以了</p>
+ <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"># admin-user-role-binding.yaml</span><br><span class="line">  apiVersion: rbac.authorization.k8s.io/v1beta1</span><br><span class="line">  kind: ClusterRoleBinding</span><br><span class="line">  metadata:</span><br><span class="line">    name: admin-user</span><br><span class="line">  roleRef:</span><br><span class="line">    apiGroup: rbac.authorization.k8s.io</span><br><span class="line">    kind: ClusterRole</span><br><span class="line">    name: cluster-admin</span><br><span class="line">  subjects:</span><br><span class="line">  - kind: ServiceAccount</span><br><span class="line">    name: admin-user</span><br><span class="line">    namespace: kube-system</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>获取token<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">kubectl -n kube-system describe secret $(kubectl -n kube-system get secret | grep admin-user | awk &apos;&#123;print $1&#125;&apos;)</span><br></pre></td></tr></table></figure>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li><p>通过APIServer来访问dashboard</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">https://&lt;master-ip&gt;:&lt;apiserver-port&gt;/api/v1/namespaces/kube-system/services/https:kubernetes-dashboard:/proxy/</span><br></pre></td></tr></table></figure>
+
+</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"># 生成client-certificate-data</span><br><span class="line">grep &apos;client-certificate-data&apos; ~/.kube/config | head -n 1 | awk &apos;&#123;print $2&#125;&apos; | base64 -d &gt;&gt; kubecfg.crt</span><br><span class="line"></span><br><span class="line"># 生成client-key-data</span><br><span class="line">grep &apos;client-key-data&apos; ~/.kube/config | head -n 1 | awk &apos;&#123;print $2&#125;&apos; | base64 -d &gt;&gt; kubecfg.key</span><br><span class="line"></span><br><span class="line"># 生成p12</span><br><span class="line">openssl pkcs12 -export -clcerts -inkey kubecfg.key -in kubecfg.crt -out kubecfg.p12 -name &quot;kubernetes-client&quot;</span><br><span class="line"></span><br><span class="line">将生成的p12文件拷贝到本地 双击导入 然后重启浏览器 选择证书</span><br></pre></td></tr></table></figure>
+
+
       
 
       
