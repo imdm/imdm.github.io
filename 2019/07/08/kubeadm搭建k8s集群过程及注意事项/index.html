@@ -8,18 +8,18 @@
   <link rel="dns-prefetch" href="http://you1.xin">
   <title>kubeadm搭建k8s集群过程及注意事项 | GreysMemo</title>
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
-  <meta name="description" content="修改hostnamemaster和各个node都要先改好hostname,否则都是默认的localhost.localdomain,node加入master后因为hostname同名导致master出问题  1（hostnamectl set-hostname xxx）  关闭防火墙12systemctl stop firewalldsystemctl disable firewalld  关闭s">
+  <meta name="description" content="修改hostnamemaster和各个node都要先改好hostname,否则都是默认的localhost.localdomain,node加入master后因为hostname同名导致master出问题  1（hostnamectl set-hostname xxx）">
 <meta name="keywords" content="greys memo 灰人 备忘录">
 <meta property="og:type" content="article">
 <meta property="og:title" content="kubeadm搭建k8s集群过程及注意事项">
 <meta property="og:url" content="http://you1.xin/2019/07/08/kubeadm搭建k8s集群过程及注意事项/index.html">
 <meta property="og:site_name" content="GreysMemo">
-<meta property="og:description" content="修改hostnamemaster和各个node都要先改好hostname,否则都是默认的localhost.localdomain,node加入master后因为hostname同名导致master出问题  1（hostnamectl set-hostname xxx）  关闭防火墙12systemctl stop firewalldsystemctl disable firewalld  关闭s">
+<meta property="og:description" content="修改hostnamemaster和各个node都要先改好hostname,否则都是默认的localhost.localdomain,node加入master后因为hostname同名导致master出问题  1（hostnamectl set-hostname xxx）">
 <meta property="og:locale" content="default">
-<meta property="og:updated_time" content="2019-07-08T06:22:49.923Z">
+<meta property="og:updated_time" content="2019-07-11T15:40:16.956Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="kubeadm搭建k8s集群过程及注意事项">
-<meta name="twitter:description" content="修改hostnamemaster和各个node都要先改好hostname,否则都是默认的localhost.localdomain,node加入master后因为hostname同名导致master出问题  1（hostnamectl set-hostname xxx）  关闭防火墙12systemctl stop firewalldsystemctl disable firewalld  关闭s">
+<meta name="twitter:description" content="修改hostnamemaster和各个node都要先改好hostname,否则都是默认的localhost.localdomain,node加入master后因为hostname同名导致master出问题  1（hostnamectl set-hostname xxx）">
   
     <link rel="alternative" href="/atom.xml" title="GreysMemo" type="application/atom+xml">
   
@@ -182,6 +182,7 @@
         <h2 id="修改hostname"><a href="#修改hostname" class="headerlink" title="修改hostname"></a>修改hostname</h2><p>master和各个node都要先改好hostname,否则都是默认的localhost.localdomain,node加入master后因为hostname同名导致master出问题 </p>
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">（hostnamectl set-hostname xxx）</span><br></pre></td></tr></table></figure>
 
+<a id="more"></a>
 <h2 id="关闭防火墙"><a href="#关闭防火墙" class="headerlink" title="关闭防火墙"></a>关闭防火墙</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">systemctl stop firewalld</span><br><span class="line">systemctl disable firewalld</span><br></pre></td></tr></table></figure>
 
 <h2 id="关闭swap"><a href="#关闭swap" class="headerlink" title="关闭swap"></a>关闭swap</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">swapoff -a </span><br><span class="line">sed -i &apos;s/.*swap.*/#&amp;/&apos; /etc/fstab</span><br></pre></td></tr></table></figure>
