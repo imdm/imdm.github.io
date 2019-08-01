@@ -140,17 +140,19 @@
         <i class="iconfont icon-up"></i>
       </div>
     </div><script type="text/javascript">
-	(function(d, s) {
-       var j, e = d.getElementsByTagName(s)[0];
+    var disqus_config = function () {
+        this.page.url = 'http://you1.xin/tags/index.html';
+        this.page.identifier = 'tags/index.html';
+        this.page.title = 'tags';
+    };
+    (function() {
+    var d = document, s = d.createElement('script');
 
-       if (typeof LivereTower === 'function') { return; }
+    s.src = '//greysmemo.disqus.com/embed.js';
 
-       j = d.createElement(s);
-       j.src = 'https://cdn-city.livere.com/js/embed.dist.js';
-       j.async = true;
-
-       e.parentNode.insertBefore(j, e);
-   })(document, 'script');
+    s.setAttribute('data-timestamp', +new Date());
+    (d.head || d.body).appendChild(s);
+    })();  
   </script><script type="text/javascript" src="/lib/jquery/jquery.min.js"></script>
   <script type="text/javascript" src="/lib/slideout/slideout.js"></script>
   <script type="text/javascript" src="/lib/fancybox/jquery.fancybox.pack.js"></script>

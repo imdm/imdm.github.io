@@ -201,7 +201,9 @@
   </div>
       <footer class="post-footer">
         <div class="post-tags">
-            <a href="/tags/k8s-kubernetes-kubeadm/">k8s kubernetes kubeadm</a>
+            <a href="/tags/k8s/">k8s</a>
+            <a href="/tags/kubernetes/">kubernetes</a>
+            <a href="/tags/kubeadm/">kubeadm</a>
             </div>
         
         <nav class="post-nav"><a class="prev" href="/2019/01/11/支付宝h5用户授权失败/">
@@ -210,9 +212,12 @@
         <span class="prev-text nav-mobile">上一篇</span>
       </a>
     </nav></footer>
-    </article></div><div class="comments" id="comments"><div id="lv-container" data-id="city" data-uid="MTAyMC80NTczMC8yMjI0MQ==">
-        <noscript>为正常使用来必力评论功能请激活JavaScript</noscript>
-      </div>  
+    </article></div><div class="comments" id="comments"><div id="disqus_thread">
+        <noscript>
+          Please enable JavaScript to view the
+          <a href="//disqus.com/?ref_noscript">comments powered by Disqus.</a>
+        </noscript>
+      </div>
     </div></div>
       </main>
 
@@ -243,17 +248,19 @@
         <i class="iconfont icon-up"></i>
       </div>
     </div><script type="text/javascript">
-	(function(d, s) {
-       var j, e = d.getElementsByTagName(s)[0];
+    var disqus_config = function () {
+        this.page.url = 'http://you1.xin/2019/01/08/kubeadm搭建k8s集群过程及注意事项/';
+        this.page.identifier = '2019/01/08/kubeadm搭建k8s集群过程及注意事项/';
+        this.page.title = 'kubeadm搭建k8s集群过程及注意事项';
+    };
+    (function() {
+    var d = document, s = d.createElement('script');
 
-       if (typeof LivereTower === 'function') { return; }
+    s.src = '//greysmemo.disqus.com/embed.js';
 
-       j = d.createElement(s);
-       j.src = 'https://cdn-city.livere.com/js/embed.dist.js';
-       j.async = true;
-
-       e.parentNode.insertBefore(j, e);
-   })(document, 'script');
+    s.setAttribute('data-timestamp', +new Date());
+    (d.head || d.body).appendChild(s);
+    })();  
   </script><script type="text/javascript" src="/lib/jquery/jquery.min.js"></script>
   <script type="text/javascript" src="/lib/slideout/slideout.js"></script>
   <script type="text/javascript" src="/lib/fancybox/jquery.fancybox.pack.js"></script>
