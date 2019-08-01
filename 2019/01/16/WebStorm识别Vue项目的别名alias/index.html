@@ -13,8 +13,8 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="#f8f5ec">
 
-<meta name="description" content="GreysMemo-灰人备忘录"><meta name="keywords" content="greys memo 灰人 备忘录"><link rel="alternate" href="/default" title="GreysMemo"><link rel="shortcut icon" type="image/x-icon" href="/favicon.ico?v=2.11.0">
-<link rel="canonical" href="http://you1.xin/archives/2019/">
+<meta name="description" content="WebStorm识别Vue项目的别名alias"><meta name="keywords" content="greys memo 灰人 备忘录"><link rel="alternate" href="/default" title="GreysMemo"><link rel="shortcut icon" type="image/x-icon" href="/favicon.ico?v=2.11.0">
+<link rel="canonical" href="http://you1.xin/2019/01/16/WebStorm识别Vue项目的别名alias/">
 
 <link rel="stylesheet" type="text/css" href="/lib/fancybox/jquery.fancybox.css"><link rel="stylesheet" type="text/css" href="/lib/nprogress/nprogress.min.css">
 <link rel="stylesheet" type="text/css" href="/css/style.css?v=2.11.0">
@@ -39,8 +39,7 @@
   window.config = {"leancloud":{"app_id":null,"app_key":null},"toc":true,"fancybox":true,"pjax":true,"latex":false};
 </script>
 
-    <title>归档 - GreysMemo
-  </title>
+    <title>WebStorm识别Vue项目的别名alias - GreysMemo</title>
   </head>
 
   <body><div id="mobile-navbar" class="mobile-navbar">
@@ -107,45 +106,59 @@
 
       <main id="main" class="main">
         <div class="content-wrapper">
-          <div id="content" class="content"><section id="archive" class="archive"><div class="archive-title">
-          <span class="archive-post-counter">
-            目前共计 3 篇日志
-          </span>
-        </div>
-      <div class="collection-title">
-            <h2 class="archive-year">2019</h2>
-          </div>
-        <div class="archive-post">
-        <span class="archive-post-time">
-          01-16
-          </span>
-        <span class="archive-post-title">
-          <a href="/2019/01/16/WebStorm识别Vue项目的别名alias/" class="archive-post-link">
-            WebStorm识别Vue项目的别名alias
-          </a>
-        </span>
+          <div id="content" class="content"><article class="post">
+    <header class="post-header">
+      <h1 class="post-title">WebStorm识别Vue项目的别名alias
+        </h1>
+
+      <div class="post-meta">
+        <span class="post-time">
+          2019-01-16
+        </span></div>
+    </header>
+
+    <div class="post-toc" id="post-toc">
+    <h2 class="post-toc-title">文章目录</h2>
+    <div class="post-toc-content">
+      <ol class="toc"><li class="toc-item toc-level-5"><a class="toc-link" href="#解决方案"><span class="toc-text">解决方案:</span></a></li></ol>
+    </div>
+  </div><div class="post-content"><p>在Vue Cli3项目中没有传统的webpack配置文件，而是集成到了vue.config.js中,导致webstorm无法识别引用路径中的alias</p>
+<a id="more"></a>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">module.exports = &#123;</span><br><span class="line">  chainWebpack: config =&gt; &#123;</span><br><span class="line">    config.resolve.alias</span><br><span class="line">      .set(&quot;@&quot;, resolve(&quot;src&quot;)) // key,value自行定义，比如.set(&apos;@@&apos;, resolve(&apos;src/components&apos;))</span><br><span class="line">      .set(&quot;_c&quot;, resolve(&quot;src/components&quot;));</span><br><span class="line">  &#125;,</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+
+<h5 id="解决方案"><a href="#解决方案" class="headerlink" title="解决方案:"></a>解决方案:</h5><p> Preferences &gt; Languages &amp; Frameworks &gt; JavaScript &gt; Webpack 设置webpack配置文件路径为: </p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">项目目录\node_modules\@vue\cli-service\webpack.config.js</span><br></pre></td></tr></table></figure>
+
+
       </div>
-    <div class="archive-post">
-        <span class="archive-post-time">
-          01-11
-          </span>
-        <span class="archive-post-title">
-          <a href="/2019/01/11/支付宝h5用户授权失败/" class="archive-post-link">
-            支付宝h5用户授权失败
-          </a>
-        </span>
-      </div>
-    <div class="archive-post">
-        <span class="archive-post-time">
-          01-08
-          </span>
-        <span class="archive-post-title">
-          <a href="/2019/01/08/kubeadm搭建k8s集群过程及注意事项/" class="archive-post-link">
-            kubeadm搭建k8s集群过程及注意事项
-          </a>
-        </span>
-      </div>
-    </section><nav class="pagination"></nav></div></div>
+      <div class="post-copyright">
+    <p class="copyright-item">
+      <span>原文作者: </span>
+      <a href="http://you1.xin">milo</a>
+    </p>
+    <p class="copyright-item">
+      <span>原文链接: </span>
+      <a href="http://you1.xin/2019/01/16/WebStorm识别Vue项目的别名alias/">http://you1.xin/2019/01/16/WebStorm识别Vue项目的别名alias/</a>
+    </p>
+    <p class="copyright-item">
+      <span>许可协议: </span>本文采用<a rel="license" href="http://creativecommons.org/licenses/by-nc/4.0/" target="_blank">CC BY 4.0 CN</a>许可协议。转载请注明出处
+    </p>
+  </div>
+      <footer class="post-footer">
+        <div class="post-tags">
+            <a href="/tags/webstorm-ide/">webstorm ide</a>
+            </div>
+        
+        <nav class="post-nav"><a class="next" href="/2019/01/11/支付宝h5用户授权失败/">
+        <span class="next-text nav-default">支付宝h5用户授权失败</span>
+        <span class="prev-text nav-mobile">下一篇</span>
+        <i class="iconfont icon-right"></i>
+      </a>
+    </nav></footer>
+    </article></div><div class="comments" id="comments"><div id="lv-container" data-id="city" data-uid="MTAyMC80NTczMC8yMjI0MQ==">
+        <noscript>为正常使用来必力评论功能请激活JavaScript</noscript>
+      </div>  
+    </div></div>
       </main>
 
       <footer id="footer" class="footer"><div class="social-links"><a href="mailto:dingmeng351@gmail.com" class="iconfont icon-email" title="email"></a>
@@ -174,7 +187,19 @@
       <div class="back-to-top" id="back-to-top">
         <i class="iconfont icon-up"></i>
       </div>
-    </div><script type="text/javascript" src="/lib/jquery/jquery.min.js"></script>
+    </div><script type="text/javascript">
+	(function(d, s) {
+       var j, e = d.getElementsByTagName(s)[0];
+
+       if (typeof LivereTower === 'function') { return; }
+
+       j = d.createElement(s);
+       j.src = 'https://cdn-city.livere.com/js/embed.dist.js';
+       j.async = true;
+
+       e.parentNode.insertBefore(j, e);
+   })(document, 'script');
+  </script><script type="text/javascript" src="/lib/jquery/jquery.min.js"></script>
   <script type="text/javascript" src="/lib/slideout/slideout.js"></script>
   <script type="text/javascript" src="/lib/fancybox/jquery.fancybox.pack.js"></script>
   <script type="text/javascript" src="/lib/pjax/jquery.pjax.min.js"></script>
