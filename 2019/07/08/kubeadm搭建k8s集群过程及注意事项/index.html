@@ -1,8 +1,246 @@
-{%- extends "_layout.swig" -%}
-{%- import '_macro/post.swig' as post_template -%}
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head><meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
 
-{%- block title -%} {{ page.title }} - {{ config.title }} {%- endblock -%}
 
-{%- block content -%}
-  {{ post_template.render(page) }}
-{%- endblock -%}
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+<meta name="theme-color" content="#f8f5ec" />
+<meta name="msapplication-navbutton-color" content="#f8f5ec">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="#f8f5ec">
+
+<meta name="description" content="kubeadm搭建k8s集群过程及注意事项"/><meta name="keywords" content="Milo's Memo 灰人 备忘录" /><link rel="alternate" href="/default" title="MilosMemo" ><link rel="shortcut icon" type="image/x-icon" href="/favicon.ico?v=2.11.0" />
+<link rel="canonical" href="https://milosmemo.com/2019/07/08/kubeadm搭建k8s集群过程及注意事项/"/>
+
+<link rel="stylesheet" type="text/css" href="/lib/fancybox/jquery.fancybox.css" />
+<link rel="stylesheet" type="text/css" href="/css/style.css?v=2.11.0" />
+
+<script id="baidu_push">
+(function(){
+    var bp = document.createElement('script');
+    var curProtocol = window.location.protocol.split(':')[0];
+    if (curProtocol === 'https') {
+        bp.src = 'https://zz.bdstatic.com/linksubmit/push.js';
+    }
+    else {
+        bp.src = 'http://push.zhanzhang.baidu.com/push.js';
+    }
+    var s = document.getElementsByTagName("script")[0];
+    s.parentNode.insertBefore(bp, s);
+})();
+</script>
+<script>
+  window.config = {"leancloud":{"app_id":null,"app_key":null},"toc":true,"fancybox":true,"pjax":"","latex":false};
+</script>
+
+    <title>kubeadm搭建k8s集群过程及注意事项 - MilosMemo</title>
+  <meta name="generator" content="Hexo 5.2.0"></head>
+
+  <body><div id="mobile-navbar" class="mobile-navbar">
+  <div class="mobile-header-logo">
+    <a href="/." class="logo">MilosMemo</a>
+  </div>
+  <div class="mobile-navbar-icon">
+    <span></span>
+    <span></span>
+    <span></span>
+  </div>
+</div>
+
+<nav id="mobile-menu" class="mobile-menu slideout-menu">
+  <ul class="mobile-menu-list"><a href="/">
+        <li class="mobile-menu-item">Home
+          </li>
+      </a><a href="/archives/">
+        <li class="mobile-menu-item">Archives
+          </li>
+      </a><a href="/tags/">
+        <li class="mobile-menu-item">Tags
+          </li>
+      </a><a href="/categories/">
+        <li class="mobile-menu-item">Categories
+          </li>
+      </a></ul>
+</nav>
+<div class="container" id="mobile-panel">
+      <header id="header" class="header"><div class="logo-wrapper">
+  <a href="/." class="logo">MilosMemo</a>
+</div>
+
+<nav class="site-navbar"><ul id="menu" class="menu"><li class="menu-item">
+          <a class="menu-item-link" href="/">
+            Home
+            </a>
+        </li>
+      <li class="menu-item">
+          <a class="menu-item-link" href="/archives/">
+            Archives
+            </a>
+        </li>
+      <li class="menu-item">
+          <a class="menu-item-link" href="/tags/">
+            Tags
+            </a>
+        </li>
+      <li class="menu-item">
+          <a class="menu-item-link" href="/categories/">
+            Categories
+            </a>
+        </li>
+      </ul></nav>
+</header>
+
+      <main id="main" class="main">
+        <div class="content-wrapper">
+          <div id="content" class="content"><article class="post">
+    <header class="post-header">
+      <h1 class="post-title">kubeadm搭建k8s集群过程及注意事项
+        </h1>
+
+      <div class="post-meta">
+        <span class="post-time">
+          2019-07-08
+        </span><span class="post-category">
+            <a href="/categories/Kubernetes/">Kubernetes</a>
+            </span>
+        </div>
+    </header>
+
+    <div class="post-toc" id="post-toc">
+    <h2 class="post-toc-title">Contents</h2>
+    <div class="post-toc-content">
+      <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BF%AE%E6%94%B9hostname"><span class="toc-text">修改hostname</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%85%B3%E9%97%AD%E9%98%B2%E7%81%AB%E5%A2%99"><span class="toc-text">关闭防火墙</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%85%B3%E9%97%ADswap"><span class="toc-text">关闭swap</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%85%B3%E9%97%ADselinux"><span class="toc-text">关闭selinux</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E8%AE%BE%E7%BD%AE%E7%BD%91%E7%BB%9C"><span class="toc-text">设置网络</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E8%AE%BE%E7%BD%AErepo"><span class="toc-text">设置repo</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%AE%89%E8%A3%85%E5%BF%85%E8%A6%81%E5%B7%A5%E5%85%B7"><span class="toc-text">安装必要工具</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%85%B6%E4%BB%96%E4%B8%80%E4%BA%9B%E8%AE%BE%E7%BD%AE"><span class="toc-text">其他一些设置</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%AE%89%E8%A3%85docker"><span class="toc-text">安装docker</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%AE%89%E8%A3%85kubeadm"><span class="toc-text">安装kubeadm</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E8%AE%BE%E7%BD%AE%E9%95%9C%E5%83%8F%E5%8A%A0%E9%80%9F"><span class="toc-text">设置镜像加速</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%87%86%E5%A4%87%E9%95%9C%E5%83%8F"><span class="toc-text">准备镜像</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#kubeadm-init"><span class="toc-text">kubeadm init</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%AE%89%E8%A3%85flannel"><span class="toc-text">安装flannel</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%AE%89%E8%A3%85dashboard"><span class="toc-text">安装dashboard</span></a></li></ol>
+    </div>
+  </div><div class="post-content"><h2 id="修改hostname"><a href="#修改hostname" class="headerlink" title="修改hostname"></a>修改hostname</h2><p>master和各个node都要先改好hostname,否则都是默认的localhost.localdomain,node加入master后因为hostname同名导致master出问题 </p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">（hostnamectl set-hostname xxx）</span><br></pre></td></tr></table></figure>
+<a id="more"></a>
+<h2 id="关闭防火墙"><a href="#关闭防火墙" class="headerlink" title="关闭防火墙"></a>关闭防火墙</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">systemctl stop firewalld</span><br><span class="line">systemctl disable firewalld</span><br></pre></td></tr></table></figure>
+<h2 id="关闭swap"><a href="#关闭swap" class="headerlink" title="关闭swap"></a>关闭swap</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">swapoff -a </span><br><span class="line">sed -i &#39;s&#x2F;.*swap.*&#x2F;#&amp;&#x2F;&#39; &#x2F;etc&#x2F;fstab</span><br></pre></td></tr></table></figure>
+<h2 id="关闭selinux"><a href="#关闭selinux" class="headerlink" title="关闭selinux"></a>关闭selinux</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">setenforce  0 </span><br><span class="line">sed -i &quot;s&#x2F;^SELINUX&#x3D;enforcing&#x2F;SELINUX&#x3D;disabled&#x2F;g&quot; &#x2F;etc&#x2F;sysconfig&#x2F;selinux </span><br><span class="line">sed -i &quot;s&#x2F;^SELINUX&#x3D;enforcing&#x2F;SELINUX&#x3D;disabled&#x2F;g&quot; &#x2F;etc&#x2F;selinux&#x2F;config </span><br><span class="line">sed -i &quot;s&#x2F;^SELINUX&#x3D;permissive&#x2F;SELINUX&#x3D;disabled&#x2F;g&quot; &#x2F;etc&#x2F;sysconfig&#x2F;selinux </span><br><span class="line">sed -i &quot;s&#x2F;^SELINUX&#x3D;permissive&#x2F;SELINUX&#x3D;disabled&#x2F;g&quot; &#x2F;etc&#x2F;selinux&#x2F;config</span><br></pre></td></tr></table></figure>
+<h2 id="设置网络"><a href="#设置网络" class="headerlink" title="设置网络"></a>设置网络</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">modprobe br_netfilter</span><br><span class="line">cat &lt;&lt;EOF &gt;  &#x2F;etc&#x2F;sysctl.d&#x2F;k8s.conf</span><br><span class="line">net.bridge.bridge-nf-call-ip6tables &#x3D; 1</span><br><span class="line">net.bridge.bridge-nf-call-iptables &#x3D; 1</span><br><span class="line">EOF</span><br><span class="line">sysctl -p &#x2F;etc&#x2F;sysctl.d&#x2F;k8s.conf</span><br><span class="line">ls &#x2F;proc&#x2F;sys&#x2F;net&#x2F;bridge</span><br></pre></td></tr></table></figure>
+<h2 id="设置repo"><a href="#设置repo" class="headerlink" title="设置repo"></a>设置repo</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">cat &lt;&lt;EOF &gt; &#x2F;etc&#x2F;yum.repos.d&#x2F;kubernetes.repo</span><br><span class="line">[kubernetes]</span><br><span class="line">name&#x3D;Kubernetes</span><br><span class="line">baseurl&#x3D;https:&#x2F;&#x2F;mirrors.aliyun.com&#x2F;kubernetes&#x2F;yum&#x2F;repos&#x2F;kubernetes-el7-x86_64&#x2F;</span><br><span class="line">enabled&#x3D;1</span><br><span class="line">gpgcheck&#x3D;1</span><br><span class="line">repo_gpgcheck&#x3D;1</span><br><span class="line">gpgkey&#x3D;https:&#x2F;&#x2F;mirrors.aliyun.com&#x2F;kubernetes&#x2F;yum&#x2F;doc&#x2F;yum-key.gpg https:&#x2F;&#x2F;mirrors.aliyun.com&#x2F;kubernetes&#x2F;yum&#x2F;doc&#x2F;rpm-package-key.gpg</span><br><span class="line">EOF</span><br></pre></td></tr></table></figure>
+<h2 id="安装必要工具"><a href="#安装必要工具" class="headerlink" title="安装必要工具"></a>安装必要工具</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">yum install -y epel-release</span><br><span class="line">yum install -y yum-utils device-mapper-persistent-data lvm2 net-tools conntrack-tools wget vim  ntpdate libseccomp libtool-ltdl </span><br></pre></td></tr></table></figure>
+<h2 id="其他一些设置"><a href="#其他一些设置" class="headerlink" title="其他一些设置"></a>其他一些设置</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">systemctl enable ntpdate.service</span><br><span class="line">echo &#39;*&#x2F;30 * * * * &#x2F;usr&#x2F;sbin&#x2F;ntpdate time7.aliyun.com &gt;&#x2F;dev&#x2F;null 2&gt;&amp;1&#39; &gt; &#x2F;tmp&#x2F;crontab2.tmp</span><br><span class="line">crontab &#x2F;tmp&#x2F;crontab2.tmp</span><br><span class="line">systemctl start ntpdate.service</span><br><span class="line"> </span><br><span class="line">echo &quot;* soft nofile 65536&quot; &gt;&gt; &#x2F;etc&#x2F;security&#x2F;limits.conf</span><br><span class="line">echo &quot;* hard nofile 65536&quot; &gt;&gt; &#x2F;etc&#x2F;security&#x2F;limits.conf</span><br><span class="line">echo &quot;* soft nproc 65536&quot;  &gt;&gt; &#x2F;etc&#x2F;security&#x2F;limits.conf</span><br><span class="line">echo &quot;* hard nproc 65536&quot;  &gt;&gt; &#x2F;etc&#x2F;security&#x2F;limits.conf</span><br><span class="line">echo &quot;* soft  memlock  unlimited&quot;  &gt;&gt; &#x2F;etc&#x2F;security&#x2F;limits.conf</span><br><span class="line">echo &quot;* hard memlock  unlimited&quot;  &gt;&gt; &#x2F;etc&#x2F;security&#x2F;limits.conf</span><br></pre></td></tr></table></figure>
+<h2 id="安装docker"><a href="#安装docker" class="headerlink" title="安装docker"></a>安装docker</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">yum-config-manager --add-repo http:&#x2F;&#x2F;mirrors.aliyun.com&#x2F;docker-ce&#x2F;linux&#x2F;centos&#x2F;docker-ce.repo</span><br><span class="line">sudo yum remove docker \</span><br><span class="line">                  docker-client \</span><br><span class="line">                  docker-client-latest \</span><br><span class="line">                  docker-common \</span><br><span class="line">                  docker-latest \</span><br><span class="line">                  docker-latest-logrotate \</span><br><span class="line">                  docker-logrotate \</span><br><span class="line">                  docker-selinux \</span><br><span class="line">                  docker-engine-selinux \</span><br><span class="line">                  docker-engine</span><br><span class="line">yum install -y docker-ce</span><br><span class="line">systemctl enable docker</span><br><span class="line">systemctl start docker</span><br></pre></td></tr></table></figure>
+<h2 id="安装kubeadm"><a href="#安装kubeadm" class="headerlink" title="安装kubeadm"></a>安装kubeadm</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">yum install -y kubelet kubeadm kubectl</span><br><span class="line">systemctl enable kubelet </span><br></pre></td></tr></table></figure>
+<h2 id="设置镜像加速"><a href="#设置镜像加速" class="headerlink" title="设置镜像加速"></a>设置镜像加速</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">sudo mkdir -p &#x2F;etc&#x2F;docker</span><br><span class="line">sudo tee &#x2F;etc&#x2F;docker&#x2F;daemon.json &lt;&lt;-&#39;EOF&#39;</span><br><span class="line">&#123;</span><br><span class="line">  &quot;registry-mirrors&quot;: [&quot;https:&#x2F;&#x2F;li2mrog8.mirror.aliyuncs.com&quot;]</span><br><span class="line">&#125;</span><br><span class="line">EOF</span><br><span class="line">sudo systemctl daemon-reload</span><br><span class="line">sudo systemctl restart docker</span><br></pre></td></tr></table></figure>
+<h2 id="准备镜像"><a href="#准备镜像" class="headerlink" title="准备镜像"></a>准备镜像</h2><ul>
+<li>不翻墙的情况下无法从k8s.gcr.io拉取镜像，因此需要提前从阿里云下载好镜像并tag改为k8s.gcr.io的,<strong>==非master的node也需要下载pause和kube-proxy==</strong><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">for i in &#96;kubeadm config images list&#96;; do</span><br><span class="line">  imageName&#x3D;$&#123;i#k8s.gcr.io&#x2F;&#125;</span><br><span class="line">  docker pull registry.aliyuncs.com&#x2F;google_containers&#x2F;$imageName</span><br><span class="line">  docker tag registry.aliyuncs.com&#x2F;google_containers&#x2F;$imageName k8s.gcr.io&#x2F;$imageName</span><br><span class="line">  docker rmi registry.aliyuncs.com&#x2F;google_containers&#x2F;$imageName</span><br><span class="line">done;</span><br></pre></td></tr></table></figure>
+
+</li>
+</ul>
+<h2 id="kubeadm-init"><a href="#kubeadm-init" class="headerlink" title="kubeadm init"></a>kubeadm init</h2><ul>
+<li>kubeadm init 时要增加参数–pod-network-cidr 10.244.0.0/16，因为flannel的默认配置是10.244.0.0/16</li>
+<li>kubeadm init 结束后不要忘了执行以下命令，否则无法正常使用kubectl<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">mkdir -p $HOME&#x2F;.kube</span><br><span class="line">sudo cp -i &#x2F;etc&#x2F;kubernetes&#x2F;admin.conf $HOME&#x2F;.kube&#x2F;config</span><br><span class="line">sudo chown $(id -u):$(id -g) $HOME&#x2F;.kube&#x2F;config</span><br></pre></td></tr></table></figure>
+<h2 id="安装flannel"><a href="#安装flannel" class="headerlink" title="安装flannel"></a>安装flannel</h2></li>
+<li><a target="_blank" rel="noopener" href="https://raw.githubusercontent.com/coreos/flannel/master/Documentation/kube-flannel.yml">https://raw.githubusercontent.com/coreos/flannel/master/Documentation/kube-flannel.yml</a><h2 id="安装dashboard"><a href="#安装dashboard" class="headerlink" title="安装dashboard"></a>安装dashboard</h2></li>
+<li>kubernetes-dashboard.yaml要修改镜像地址，否则无法pull</li>
+<li>dashboard 如果以NodePort方式暴露接口来访问则需创建user，具体步骤为:<ul>
+<li>创建一个叫admin-user的服务账号 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"># admin-user.yaml</span><br><span class="line">  apiVersion: v1</span><br><span class="line">  kind: ServiceAccount</span><br><span class="line">  metadata:</span><br><span class="line">  name: admin-user</span><br><span class="line">  namespace: kube-system</span><br></pre></td></tr></table></figure></li>
+<li>绑定角色,kubeadm默认已经创建了admin的角色,直接绑定就可以了 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"># admin-user-role-binding.yaml</span><br><span class="line">  apiVersion: rbac.authorization.k8s.io&#x2F;v1beta1</span><br><span class="line">  kind: ClusterRoleBinding</span><br><span class="line">  metadata:</span><br><span class="line">    name: admin-user</span><br><span class="line">  roleRef:</span><br><span class="line">    apiGroup: rbac.authorization.k8s.io</span><br><span class="line">    kind: ClusterRole</span><br><span class="line">    name: cluster-admin</span><br><span class="line">  subjects:</span><br><span class="line">  - kind: ServiceAccount</span><br><span class="line">    name: admin-user</span><br><span class="line">    namespace: kube-system</span><br></pre></td></tr></table></figure>
+<ul>
+<li>获取token<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">kubectl -n kube-system describe secret $(kubectl -n kube-system get secret | grep admin-user | awk &#39;&#123;print $1&#125;&#39;)</span><br></pre></td></tr></table></figure></li>
+</ul>
+</li>
+</ul>
+</li>
+<li>通过APIServer来访问dashboard<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">https:&#x2F;&#x2F;&lt;master-ip&gt;:&lt;apiserver-port&gt;&#x2F;api&#x2F;v1&#x2F;namespaces&#x2F;kube-system&#x2F;services&#x2F;https:kubernetes-dashboard:&#x2F;proxy&#x2F;</span><br></pre></td></tr></table></figure>
+
+</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"># 生成client-certificate-data</span><br><span class="line">grep &#39;client-certificate-data&#39; ~&#x2F;.kube&#x2F;config | head -n 1 | awk &#39;&#123;print $2&#125;&#39; | base64 -d &gt;&gt; kubecfg.crt</span><br><span class="line"></span><br><span class="line"># 生成client-key-data</span><br><span class="line">grep &#39;client-key-data&#39; ~&#x2F;.kube&#x2F;config | head -n 1 | awk &#39;&#123;print $2&#125;&#39; | base64 -d &gt;&gt; kubecfg.key</span><br><span class="line"></span><br><span class="line"># 生成p12</span><br><span class="line">openssl pkcs12 -export -clcerts -inkey kubecfg.key -in kubecfg.crt -out kubecfg.p12 -name &quot;kubernetes-client&quot;</span><br><span class="line"></span><br><span class="line">将生成的p12文件拷贝到本地 双击导入 然后重启浏览器 选择证书</span><br></pre></td></tr></table></figure>
+
+      </div>
+      <div class="post-copyright">
+    <p class="copyright-item">
+      <span>Author: </span>
+      <a href="https://milosmemo.com">Milo</a>
+    </p>
+    <p class="copyright-item">
+      <span>Link: </span>
+      <a href="https://milosmemo.com/2019/07/08/kubeadm%E6%90%AD%E5%BB%BAk8s%E9%9B%86%E7%BE%A4%E8%BF%87%E7%A8%8B%E5%8F%8A%E6%B3%A8%E6%84%8F%E4%BA%8B%E9%A1%B9/">https://milosmemo.com/2019/07/08/kubeadm%E6%90%AD%E5%BB%BAk8s%E9%9B%86%E7%BE%A4%E8%BF%87%E7%A8%8B%E5%8F%8A%E6%B3%A8%E6%84%8F%E4%BA%8B%E9%A1%B9/</a>
+    </p>
+    <p class="copyright-item">
+      <span>License: </span>本文采用<a rel="license" href="http://creativecommons.org/licenses/by-nc/4.0/" target="_blank">CC BY 4.0 CN</a>许可协议。转载请注明出处
+    </p>
+  </div>
+      <div class="post-reward">
+    <input type="checkbox" name="reward" id="reward" hidden />
+    <label class="reward-button" for="reward">Reward</label>
+    <div class="qr-code"><label class="qr-code-image" for="reward">
+          <img class="image" src="/assert/img/wechat.png" title="wechat">
+        </label>
+      <label class="qr-code-image" for="reward">
+          <img class="image" src="/assert/img/alipay.png" title="alipay">
+        </label>
+      </div>
+  </div><footer class="post-footer">
+        <div class="post-tags">
+            <a href="/tags/K8s/">K8s</a>
+            <a href="/tags/Kubernetes/">Kubernetes</a>
+            <a href="/tags/Kubeadm/">Kubeadm</a>
+            </div>
+        
+        <nav class="post-nav"><a class="prev" href="/2019/07/11/%E6%94%AF%E4%BB%98%E5%AE%9Dh5%E7%94%A8%E6%88%B7%E6%8E%88%E6%9D%83%E5%A4%B1%E8%B4%A5/">
+        <i class="iconfont icon-left"></i>
+        <span class="prev-text nav-default">支付宝h5用户授权失败</span>
+        <span class="prev-text nav-mobile">Prev</span>
+      </a>
+    </nav></footer>
+    </article></div><div class="comments" id="comments"><div id="disqus_thread">
+        <noscript>
+          Please enable JavaScript to view the
+          <a target="_blank" rel="noopener" href="//disqus.com/?ref_noscript">comments powered by Disqus.</a>
+        </noscript>
+      </div>
+    </div></div>
+      </main>
+
+      <footer id="footer" class="footer"><div class="social-links"><a href="mailto:dingmeng351@gmail.com" class="iconfont icon-email" title="email"></a>
+        <a target="_blank" rel="noopener" href="https://github.com/imdm" class="iconfont icon-github" title="github"></a>
+        <a href="/atom.xml" class="iconfont icon-rss" title="rss"></a>
+    </div><div class="copyright">
+  <span class="power-by">
+    Powered by <a class="hexo-link" target="_blank" rel="noopener" href="https://hexo.io/">Hexo</a>
+  </span>
+  <span class="division">|</span>
+  <span class="theme-info">
+    Theme - 
+    <a class="theme-link" target="_blank" rel="noopener" href="https://github.com/ahonn/hexo-theme-even">Even</a>
+  </span>
+
+  <span class="copyright-year">&copy;2019 - 2020<span class="heart">
+      <i class="iconfont icon-heart"></i>
+    </span>
+    <span class="author">Milo</span>
+  </span>
+</div>
+</footer>
+
+      <div class="back-to-top" id="back-to-top">
+        <i class="iconfont icon-up"></i>
+      </div>
+    </div><script type="text/javascript">
+    var disqus_config = function () {
+        this.page.url = 'https://milosmemo.com/2019/07/08/kubeadm%E6%90%AD%E5%BB%BAk8s%E9%9B%86%E7%BE%A4%E8%BF%87%E7%A8%8B%E5%8F%8A%E6%B3%A8%E6%84%8F%E4%BA%8B%E9%A1%B9/';
+        this.page.identifier = '2019/07/08/kubeadm搭建k8s集群过程及注意事项/';
+        this.page.title = 'kubeadm搭建k8s集群过程及注意事项';
+    };
+    (function() {
+    var d = document, s = d.createElement('script');
+
+    s.src = '//milosmemo.disqus.com/embed.js';
+
+    s.setAttribute('data-timestamp', +new Date());
+    (d.head || d.body).appendChild(s);
+    })();  
+  </script><script type="text/javascript" src="/lib/jquery/jquery.min.js"></script>
+  <script type="text/javascript" src="/lib/slideout/slideout.js"></script>
+  <script type="text/javascript" src="/lib/fancybox/jquery.fancybox.pack.js"></script>
+  <script type="text/javascript" src="/js/src/even.js?v=2.11.0"></script>
+</body>
+</html>

@@ -1,8 +1,355 @@
-{%- extends "_layout.swig" -%}
-{%- import '_macro/post.swig' as post_template -%}
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head><meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
 
-{%- block title -%} {{ page.title }} - {{ config.title }} {%- endblock -%}
 
-{%- block content -%}
-  {{ post_template.render(page) }}
-{%- endblock -%}
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+<meta name="theme-color" content="#f8f5ec" />
+<meta name="msapplication-navbutton-color" content="#f8f5ec">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="#f8f5ec">
+
+<meta name="description" content="mysql事务的一些总结"/><meta name="keywords" content="Milo's Memo 灰人 备忘录" /><link rel="alternate" href="/default" title="MilosMemo" ><link rel="shortcut icon" type="image/x-icon" href="/favicon.ico?v=2.11.0" />
+<link rel="canonical" href="https://milosmemo.com/2020/09/19/mysql事务的一些总结/"/>
+
+<link rel="stylesheet" type="text/css" href="/lib/fancybox/jquery.fancybox.css" />
+<link rel="stylesheet" type="text/css" href="/css/style.css?v=2.11.0" />
+
+<script id="baidu_push">
+(function(){
+    var bp = document.createElement('script');
+    var curProtocol = window.location.protocol.split(':')[0];
+    if (curProtocol === 'https') {
+        bp.src = 'https://zz.bdstatic.com/linksubmit/push.js';
+    }
+    else {
+        bp.src = 'http://push.zhanzhang.baidu.com/push.js';
+    }
+    var s = document.getElementsByTagName("script")[0];
+    s.parentNode.insertBefore(bp, s);
+})();
+</script>
+<script>
+  window.config = {"leancloud":{"app_id":null,"app_key":null},"toc":true,"fancybox":true,"pjax":"","latex":false};
+</script>
+
+    <title>mysql事务的一些总结 - MilosMemo</title>
+  <meta name="generator" content="Hexo 5.2.0"></head>
+
+  <body><div id="mobile-navbar" class="mobile-navbar">
+  <div class="mobile-header-logo">
+    <a href="/." class="logo">MilosMemo</a>
+  </div>
+  <div class="mobile-navbar-icon">
+    <span></span>
+    <span></span>
+    <span></span>
+  </div>
+</div>
+
+<nav id="mobile-menu" class="mobile-menu slideout-menu">
+  <ul class="mobile-menu-list"><a href="/">
+        <li class="mobile-menu-item">Home
+          </li>
+      </a><a href="/archives/">
+        <li class="mobile-menu-item">Archives
+          </li>
+      </a><a href="/tags/">
+        <li class="mobile-menu-item">Tags
+          </li>
+      </a><a href="/categories/">
+        <li class="mobile-menu-item">Categories
+          </li>
+      </a></ul>
+</nav>
+<div class="container" id="mobile-panel">
+      <header id="header" class="header"><div class="logo-wrapper">
+  <a href="/." class="logo">MilosMemo</a>
+</div>
+
+<nav class="site-navbar"><ul id="menu" class="menu"><li class="menu-item">
+          <a class="menu-item-link" href="/">
+            Home
+            </a>
+        </li>
+      <li class="menu-item">
+          <a class="menu-item-link" href="/archives/">
+            Archives
+            </a>
+        </li>
+      <li class="menu-item">
+          <a class="menu-item-link" href="/tags/">
+            Tags
+            </a>
+        </li>
+      <li class="menu-item">
+          <a class="menu-item-link" href="/categories/">
+            Categories
+            </a>
+        </li>
+      </ul></nav>
+</header>
+
+      <main id="main" class="main">
+        <div class="content-wrapper">
+          <div id="content" class="content"><article class="post">
+    <header class="post-header">
+      <h1 class="post-title">mysql事务的一些总结
+        </h1>
+
+      <div class="post-meta">
+        <span class="post-time">
+          2020-09-19
+        </span><span class="post-category">
+            <a href="/categories/Mysql/">Mysql</a>
+            </span>
+        </div>
+    </header>
+
+    <div class="post-toc" id="post-toc">
+    <h2 class="post-toc-title">Contents</h2>
+    <div class="post-toc-content">
+      <ol class="toc"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%89%8D%E8%A8%80"><span class="toc-text">前言</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%9F%BA%E6%9C%AC%E6%A6%82%E5%BF%B5"><span class="toc-text">基本概念</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E4%BA%8B%E5%8A%A1%E7%89%B9%E6%80%A7-ACID"><span class="toc-text">事务特性 ACID</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#binlog%E7%9A%84%E4%B8%89%E7%A7%8D%E6%A8%A1%E5%BC%8F"><span class="toc-text">binlog的三种模式</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E8%84%8F%E8%AF%BB%E3%80%81%E5%B9%BB%E8%AF%BB%E3%80%81%E4%B8%8D%E5%8F%AF%E9%87%8D%E5%A4%8D%E8%AF%BB"><span class="toc-text">脏读、幻读、不可重复读</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E4%BA%8B%E5%8A%A1%E7%9A%84%E5%9B%9B%E7%A7%8D%E9%9A%94%E7%A6%BB%E7%BA%A7%E5%88%AB"><span class="toc-text">事务的四种隔离级别</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%BA%8B%E5%8A%A1%E9%9A%94%E7%A6%BB-%E5%8F%AF%E9%87%8D%E5%A4%8D%E8%AF%BB-%E6%98%AF%E5%A6%82%E4%BD%95%E5%AE%9E%E7%8E%B0%E7%9A%84"><span class="toc-text">事务隔离(可重复读)是如何实现的</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#MVCC"><span class="toc-text">MVCC</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E6%B6%88%E9%99%A4%E5%B9%BB%E8%AF%BB"><span class="toc-text">消除幻读</span></a></li></ol></li></ol>
+    </div>
+  </div><div class="post-content"><h3 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h3><p>近期mysql事务使用过程中遇到过一些问题，本文是对这些问题及进而探究出来的一些知识点的梳理总结。</p>
+<h3 id="基本概念"><a href="#基本概念" class="headerlink" title="基本概念"></a>基本概念</h3><p>首先阐述几个相关概念</p>
+<a id="more"></a>
+
+<h4 id="事务特性-ACID"><a href="#事务特性-ACID" class="headerlink" title="事务特性 ACID"></a>事务特性 ACID</h4><ol>
+<li>Atomicity(原子性)。<br>一个事务必须被视为一个不可分割的最小工作单元，整个事务中的所有操作要么全部提交成功，要么全部失败回滚，不会结束在中间某个环节。事务在执行过程中发生错误，会被回滚到事务开始前的状态，就像这个事务从来没有执行过一样。</li>
+<li>Consistenty(一致性)。<br>事务在开始之前和结束之后，数据库的完整性不会被破坏。这表示写入的数据必须完全符合预设的约束、触发器、级联回滚等。数据库总是会从一个一致性状态转换到另一个一致性状态。</li>
+<li>Isolation(隔离性)。<br>数据库允许多个并发事务同时对其进行读写操作，可以防止多个事务并发执行时由于交叉执行而导致的数据不一致。具体分为读未提交、读提交、可重复读、串行化四个级别。</li>
+<li>Durability(持久性)。<br>事务处理结束后，对数据的修改就是永久的，即使发生故障也不会丢失。</li>
+</ol>
+<h4 id="binlog的三种模式"><a href="#binlog的三种模式" class="headerlink" title="binlog的三种模式"></a>binlog的三种模式</h4><ol>
+<li><p>Row模式。<br>会记录每行数据的修改，然后在slave端再对相同的数据执行相同的修改。</p>
+</li>
+<li><p>Statement模式。<br>记录相应的sql语句，然后再slave端执行相同的sql语句。</p>
+</li>
+<li><p>Mixed模式。<br>系统根据具体执行的每一个操作来选择Row或者Statement模式中的一种。</p>
+</li>
+</ol>
+<h4 id="脏读、幻读、不可重复读"><a href="#脏读、幻读、不可重复读" class="headerlink" title="脏读、幻读、不可重复读"></a>脏读、幻读、不可重复读</h4><ol>
+<li>脏读。<br>一个事务读到其他事务已经修改但尚未提交的内容。</li>
+<li>幻读。<br>同一事务中，前后两次完全相同的查询语句得到了不同的结果集(其他事务新插入了记录)。幻读仅发生在”当前读”，且仅专指”新插入的行”。</li>
+<li>不可重复读。<br>同一事务中，对同一份数据两次读到不同的值。</li>
+</ol>
+<h4 id="事务的四种隔离级别"><a href="#事务的四种隔离级别" class="headerlink" title="事务的四种隔离级别"></a>事务的四种隔离级别</h4><ol>
+<li>Read Uncommitted(读未提交)。<br>最低的隔离级别，会出现”脏读”，事务可以看到其他事务尚未提交的内容。<em>生产环境不会使用。</em></li>
+<li>Read Committed(读提交)。<br>一个事务只能看见其他已提交事务的修改，会出现”不可重复读“现象。对选定对象的写锁一直保持到事务结束，但是读锁在select结束后马上释放。<em>多配合binlog的row模式使用</em>。</li>
+<li>Repeatable Read(可重复读)。<br>基于锁的并发控制对选定的对象的读锁和写锁都持续到事务结束。一个事务在执行过程中看到的数据，总是跟这个事务在启动时看到的是一致的。<em>默认隔离级别。</em></li>
+<li>Serializable(串行化)。<br>最高隔离级别，通过强制事务排序，使之不可能出现相互冲突，牺牲了系统的并发性。<em>生产环境不会使用。</em></li>
+</ol>
+<h3 id="事务隔离-可重复读-是如何实现的"><a href="#事务隔离-可重复读-是如何实现的" class="headerlink" title="事务隔离(可重复读)是如何实现的"></a>事务隔离(可重复读)是如何实现的</h3><p>mysql常用存储引擎为InnoDB。InnoDB的默认隔离级别是可重复读(RR)，具体实现为通过多版本并发控制(Multi Version Concurrency Control)来实现”可重复读”，通过间隙锁(Gap Lock)和Next-Key Lock来消除“幻读”。</p>
+<h4 id="MVCC"><a href="#MVCC" class="headerlink" title="MVCC"></a>MVCC</h4><p>所谓的多版本即同一行数据可能存在多个”快照”。在RR级别下，事务启动时会对整个数据库”拍一个快照”。<strong>这个”快照”并非将整个数据库都拷贝一份</strong>。InnoDB里每个事务都有一个唯一的事务ID，即transaction id，它是事务开始时向InnoDB的事务系统申请的，且是严格递增的。每次事务更新数据的时候，都会生成一个新的数据版本，并且把事务的transaction id 赋值给这个数据版本的事务ID，记为 row trx_id。同时旧的数据版本也要保留。基于这个机制，每个事务启动的时候申明：“以我启动的时刻为准，如果一个数据版本是在我启动之前生成的，我就认；如果是在我启动之后生成的，我就不认，我要找到它在我启动之前的版本”。当然，<strong>事务自身修改生成的新版本还是要认的</strong>。</p>
+<p>在继续之前先解释下这个”查找之前版本”的具体实现：数据的旧版本并非都是物理真实存在的，而是根据当前版本和undo log(回滚日志)计算出来的。一起来看一个场景：</p>
+<table>
+<thead>
+<tr>
+<th align="center"><strong>时刻\事务</strong></th>
+<th align="center">Session A</th>
+<th align="center">Session B</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="center"><strong>T1</strong></td>
+<td align="center">start transaction with consistent snapshot;</td>
+<td align="center"></td>
+</tr>
+<tr>
+<td align="center"><strong>T2</strong></td>
+<td align="center"></td>
+<td align="center">update t set c=c+1 where id=5;//执行100000次</td>
+</tr>
+<tr>
+<td align="center"><strong>T3</strong></td>
+<td align="center">select * from t where id=5 lock in share mode;</td>
+<td align="center"></td>
+</tr>
+<tr>
+<td align="center"><strong>T4</strong></td>
+<td align="center">select * from t where id=5;</td>
+<td align="center"></td>
+</tr>
+</tbody></table>
+<p>在T2时刻事务B执行了10万次修改，导致id为5的这行数据生成了10万个undo log(回滚日志)。而T4时刻Session A要读取id为5这一行的数据时就需要基于id未5这行数据的最新版本执行10万次计算来得到一个”认”的版本，显然，这个执行过程是会非常耗时的，这种读取方式成为”快照读”。而T3时刻的语句则会执行的非常快，原因是”lock in share mode”表示这次读取为”当前读”，即直接读取数据的当前版本(for update也是当前读)。</p>
+<p>在事务启动时，InnoDB为每个事务创建了一个事务数组，用来存储当前时刻所有”活跃”的事务ID，其中“活跃”指的是已经创建但还没有提交。我们将这个数据中的最小事务ID称为”低水位”，将当前系统中已经创建过的事务中最大的事务ID称为”高水位”。这个数组和”高水位”就组成了事务的“一致性视图”，而数据版本的可见规则都是基于数据的row trx_id和这个”一致性视图”对比得到的：</p>
+<ol>
+<li>如果数据的row trx_id小于”低水位”或者这个版本是自己生成的，就可见；</li>
+<li>如果数据的row trx_id大于”高水位”，那这个版本是由本事务启动之后创建的事务生成的，不可见；</li>
+<li>如果数据的row trx_id介于”低水位”和”高水位”之间，则又分为两种情况：<br>a. 若row trx_id在数组中，则表示这个版本的数据是由还未提交的事务生成的，不可见；<br>b. 若row trx_id不在数组中，则表示这个版本的数据是由已经提交了的事务生成的，可见；</li>
+</ol>
+<p>基于上述这些，MVCC实现了”秒级创建整库快照”的功能。</p>
+<h4 id="消除幻读"><a href="#消除幻读" class="headerlink" title="消除幻读"></a>消除幻读</h4><p>在RR级别下，普通读都是”快照读”，不会看到其他事务新插入的行，因此，”幻读”仅发生在”当前读”。</p>
+<table>
+<thead>
+<tr>
+<th align="center">时刻\事务</th>
+<th align="center">Session A</th>
+<th align="center">Session B</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="center">T1</td>
+<td align="center">select * from t where d=5 for update; <br>result(5,5,5)<br>/<em>update t set c=100 where d=5;</em>/</td>
+<td align="center"></td>
+</tr>
+<tr>
+<td align="center">T2</td>
+<td align="center"></td>
+<td align="center">insert into t values(1,1,5);<br>/<em>update t set c=5 where id=1;</em>/</td>
+</tr>
+<tr>
+<td align="center">T3</td>
+<td align="center">select * from t where d=5 for update;<br>result(1,1,5),(5,5,5)</td>
+<td align="center"></td>
+</tr>
+<tr>
+<td align="center">T4</td>
+<td align="center">commit;</td>
+<td align="center"></td>
+</tr>
+</tbody></table>
+<p>那么幻读有什么危害呢？</p>
+<ol>
+<li>首先是语义上的。T1时刻Session A的语句语义上是要锁住所有d=5的行，而由于(1,1,5)这行数据是T2时刻才插入的，因此T2时刻Session B在插入以后紧跟着执行update t set c=5 where id=1是可以执行成功的。这样就破坏了T1时刻事务要锁住所有d=5的行的加锁声明。</li>
+<li>其次是会破坏数据的一致性。由于binlog默认是采用statement模式，会将事务的所有操作以sql语句的形式记录，然后再slave端执行相同的sql语句，且是<strong>在事务提交以后才将事务的所有语句一次性写入</strong>(防止crash导致日志不完整)。因此若在T1时刻Session A查询后执行了update t set c=100 where d=5只会修改id=5的这一行，但由于Session B没有显示开启事务，在执行结束后就会自动提交而Session A在T4时刻才提交，所以binlog中是Session B的语句在前Session A的语句在后，在slave端根据主库的binlog执行同步的结果是id=1和id=5的行c值都会被修改为100，导致主从库的数据不一致。</li>
+</ol>
+<p>因此InnoDB加入了间隙锁(Gap Lock)，顾名思义，就是锁住两个值之间的间隙，不允许在这个间隙内插入新数据。关于间隙锁的几个重点：</p>
+<ol>
+<li>间隙锁彼此不会冲，即两个事务可以并发对同一间隙加间隙锁，都会成功；</li>
+<li>间隙锁和行锁合称为Next-Key Lock，每个Next-Key Lock是一个前开后闭的区间；</li>
+<li>索引上的等值查询：<br>a. 如果索引是唯一索引，则Next-Key Lock会退化为行锁；<br>b. 如果是普通索引，向右遍历到的最后一个值不满足等值条件的话，Next-Key Lock会退化为Gap Lock；</li>
+<li>唯一索引上的范围查询，会访问到第一个不满足条件的值为止；</li>
+<li>只有访问到的对象才会加锁，如果是覆盖索引，因为不需要再回表访问主键索引，因此不会在主键索引上加间隙锁，此时其他并发的事务如果根据主键id执行修改不会block住。这里要提一个lock in share mode和for update的区别：同样是覆盖索引，lock in share mode只会锁住覆盖索引，而for update认为接下来的语句要update，会顺便给主键索引加上锁。</li>
+</ol>
+<p>通过引入间隙锁和Next-Key Lock，InnoDB解决了”幻读”的问题，但同时导致相同的语句锁住了更大的范围，降低了系统的并发度，举个简单的例子：</p>
+<table>
+<thead>
+<tr>
+<th align="center">时刻\事务</th>
+<th align="center">Session A</th>
+<th align="center">Session B</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="center">T1</td>
+<td align="center">begin;<br>select * from t where id=5 for update;</td>
+<td align="center"></td>
+</tr>
+<tr>
+<td align="center">T2</td>
+<td align="center"></td>
+<td align="center">begin;<br>select * from t where id=5 for update;</td>
+</tr>
+<tr>
+<td align="center">T3</td>
+<td align="center"></td>
+<td align="center">insert into t values(5,5,5);<br>(<font color="red">blocked</font>)</td>
+</tr>
+<tr>
+<td align="center">T4</td>
+<td align="center">insert into t values(5,5,5);<br>(<font color=red>ERROR, Dead lock found</font>)</td>
+<td align="center"></td>
+</tr>
+</tbody></table>
+<p>由于之前id=5的行并不存在，因此T1和T2时刻Session A和Session B都会加一个相同范围的间隙锁(假设为3-7)，在T3时刻Session B的插入动作被Session A的间隙锁挡住了，进入等待，T4时刻Session A的插入会被Session B的间隙锁挡住，至此两个Session进入彼此等待状态，形成死锁。</p>
+<p>此处再补充事务使用的两个建议：</p>
+<ol>
+<li>事务要尽量的短；如非必要，尽量不要将事务拉的过长，因为事务越长，生成的间隙锁就会越多，造成死锁的概率就越大。</li>
+<li>如果事务中要锁多个行，要把最可能造成锁冲突、最可能降低并发度的锁尽量往后放；举个例子：从仓库发料到供应商的现编仓，在同一个事务中要完成发料仓库和供应商现编仓两个仓库的库存变更，但多个供应商是从同一供料仓发料，显然对供料仓库存的修改更可能造成锁冲突，因此应当先执行现编仓的库存修改再执行供料仓的库存修改。</li>
+</ol>
+
+      </div>
+      <div class="post-copyright">
+    <p class="copyright-item">
+      <span>Author: </span>
+      <a href="https://milosmemo.com">Milo</a>
+    </p>
+    <p class="copyright-item">
+      <span>Link: </span>
+      <a href="https://milosmemo.com/2020/09/19/mysql%E4%BA%8B%E5%8A%A1%E7%9A%84%E4%B8%80%E4%BA%9B%E6%80%BB%E7%BB%93/">https://milosmemo.com/2020/09/19/mysql%E4%BA%8B%E5%8A%A1%E7%9A%84%E4%B8%80%E4%BA%9B%E6%80%BB%E7%BB%93/</a>
+    </p>
+    <p class="copyright-item">
+      <span>License: </span>本文采用<a rel="license" href="http://creativecommons.org/licenses/by-nc/4.0/" target="_blank">CC BY 4.0 CN</a>许可协议。转载请注明出处
+    </p>
+  </div>
+      <div class="post-reward">
+    <input type="checkbox" name="reward" id="reward" hidden />
+    <label class="reward-button" for="reward">Reward</label>
+    <div class="qr-code"><label class="qr-code-image" for="reward">
+          <img class="image" src="/assert/img/wechat.png" title="wechat">
+        </label>
+      <label class="qr-code-image" for="reward">
+          <img class="image" src="/assert/img/alipay.png" title="alipay">
+        </label>
+      </div>
+  </div><footer class="post-footer">
+        <div class="post-tags">
+            <a href="/tags/Mysql/">Mysql</a>
+            <a href="/tags/%E4%BA%8B%E5%8A%A1/">事务</a>
+            </div>
+        
+        <nav class="post-nav"><a class="next" href="/2019/09/26/centos%E5%BB%BA%E7%AB%8Bgit%E8%A3%B8%E4%BB%93/">
+        <span class="next-text nav-default">centos建立git裸仓</span>
+        <span class="prev-text nav-mobile">Next</span>
+        <i class="iconfont icon-right"></i>
+      </a>
+    </nav></footer>
+    </article></div><div class="comments" id="comments"><div id="disqus_thread">
+        <noscript>
+          Please enable JavaScript to view the
+          <a target="_blank" rel="noopener" href="//disqus.com/?ref_noscript">comments powered by Disqus.</a>
+        </noscript>
+      </div>
+    </div></div>
+      </main>
+
+      <footer id="footer" class="footer"><div class="social-links"><a href="mailto:dingmeng351@gmail.com" class="iconfont icon-email" title="email"></a>
+        <a target="_blank" rel="noopener" href="https://github.com/imdm" class="iconfont icon-github" title="github"></a>
+        <a href="/atom.xml" class="iconfont icon-rss" title="rss"></a>
+    </div><div class="copyright">
+  <span class="power-by">
+    Powered by <a class="hexo-link" target="_blank" rel="noopener" href="https://hexo.io/">Hexo</a>
+  </span>
+  <span class="division">|</span>
+  <span class="theme-info">
+    Theme - 
+    <a class="theme-link" target="_blank" rel="noopener" href="https://github.com/ahonn/hexo-theme-even">Even</a>
+  </span>
+
+  <span class="copyright-year">&copy;2019 - 2020<span class="heart">
+      <i class="iconfont icon-heart"></i>
+    </span>
+    <span class="author">Milo</span>
+  </span>
+</div>
+</footer>
+
+      <div class="back-to-top" id="back-to-top">
+        <i class="iconfont icon-up"></i>
+      </div>
+    </div><script type="text/javascript">
+    var disqus_config = function () {
+        this.page.url = 'https://milosmemo.com/2020/09/19/mysql%E4%BA%8B%E5%8A%A1%E7%9A%84%E4%B8%80%E4%BA%9B%E6%80%BB%E7%BB%93/';
+        this.page.identifier = '2020/09/19/mysql事务的一些总结/';
+        this.page.title = 'mysql事务的一些总结';
+    };
+    (function() {
+    var d = document, s = d.createElement('script');
+
+    s.src = '//milosmemo.disqus.com/embed.js';
+
+    s.setAttribute('data-timestamp', +new Date());
+    (d.head || d.body).appendChild(s);
+    })();  
+  </script><script type="text/javascript" src="/lib/jquery/jquery.min.js"></script>
+  <script type="text/javascript" src="/lib/slideout/slideout.js"></script>
+  <script type="text/javascript" src="/lib/fancybox/jquery.fancybox.pack.js"></script>
+  <script type="text/javascript" src="/js/src/even.js?v=2.11.0"></script>
+</body>
+</html>
