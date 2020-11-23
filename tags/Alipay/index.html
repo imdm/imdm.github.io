@@ -54,16 +54,16 @@
 
 <nav id="mobile-menu" class="mobile-menu slideout-menu">
   <ul class="mobile-menu-list"><a href="/">
-        <li class="mobile-menu-item">Home
+        <li class="mobile-menu-item">首页
           </li>
       </a><a href="/archives/">
-        <li class="mobile-menu-item">Archives
+        <li class="mobile-menu-item">归档
           </li>
       </a><a href="/tags/">
-        <li class="mobile-menu-item">Tags
+        <li class="mobile-menu-item">标签
           </li>
       </a><a href="/categories/">
-        <li class="mobile-menu-item">Categories
+        <li class="mobile-menu-item">分类
           </li>
       </a></ul>
 </nav>
@@ -74,22 +74,22 @@
 
 <nav class="site-navbar"><ul id="menu" class="menu"><li class="menu-item">
           <a class="menu-item-link" href="/">
-            Home
+            首页
             </a>
         </li>
       <li class="menu-item">
           <a class="menu-item-link" href="/archives/">
-            Archives
+            归档
             </a>
         </li>
       <li class="menu-item">
           <a class="menu-item-link" href="/tags/">
-            Tags
+            标签
             </a>
         </li>
       <li class="menu-item">
           <a class="menu-item-link" href="/categories/">
-            Categories
+            分类
             </a>
         </li>
       </ul></nav>
@@ -118,11 +118,11 @@
         <a href="/atom.xml" class="iconfont icon-rss" title="rss"></a>
     </div><div class="copyright">
   <span class="power-by">
-    Powered by <a class="hexo-link" target="_blank" rel="noopener" href="https://hexo.io/">Hexo</a>
+    由 <a class="hexo-link" target="_blank" rel="noopener" href="https://hexo.io/">Hexo</a> 强力驱动
   </span>
   <span class="division">|</span>
   <span class="theme-info">
-    Theme - 
+    主题 - 
     <a class="theme-link" target="_blank" rel="noopener" href="https://github.com/ahonn/hexo-theme-even">Even</a>
   </span>
 
@@ -137,20 +137,18 @@
       <div class="back-to-top" id="back-to-top">
         <i class="iconfont icon-up"></i>
       </div>
-    </div><script type="text/javascript">
-    var disqus_config = function () {
-        this.page.url = '';
-        this.page.identifier = 'tags/Alipay/index.html';
-        this.page.title = '';
-    };
-    (function() {
-    var d = document, s = d.createElement('script');
+    </div><script>
+    var container = document.getElementById('utterances-container')
+    var script = document.createElement('script')
+    script.src = 'https://utteranc.es/client.js'
+    script.setAttribute('repo', 'imdm/blog-comments')
+    script.setAttribute('issue-term', 'title')
+    script.setAttribute('theme', 'github-light')
+    script.setAttribute('label', 'utterances')
+    script.crossorigin = 'anonymous'
+    script.async = true
 
-    s.src = '//milosmemo.disqus.com/embed.js';
-
-    s.setAttribute('data-timestamp', +new Date());
-    (d.head || d.body).appendChild(s);
-    })();  
+    container.appendChild(script)
   </script><script type="text/javascript" src="/lib/jquery/jquery.min.js"></script>
   <script type="text/javascript" src="/lib/slideout/slideout.js"></script>
   <script type="text/javascript" src="/lib/fancybox/jquery.fancybox.pack.js"></script>
